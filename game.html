@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teachable Machine Animal Quiz</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .quiz-container { max-width: 600px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .image-display { margin-bottom: 20px; }
+        /* Set a fixed size for the image area to prevent layout jumps */
+        .image-display img { max-width: 100%; height: 250px; object-fit: contain; border: 1px solid #ddd; border-radius: 4px; }
+        .options-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .option-button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: 2px solid #007bff; background-color: #fff; color: #007bff; border-radius: 5px; transition: background-color 0.3s; }
+        .option-button:hover:not(:disabled) { background-color: #007bff; color: white; }
+        .option-button:disabled { cursor: not-allowed; opacity: 0.6; }
+        .feedback { margin-top: 15px; font-weight: bold; }
+  
+
+    <div class="quiz-container">
+        <h1>Animal Classification Quiz</h1>
+        <h2 id="score-display">Score: 0</h2>
+        <h3 id="hint-display"></h3>
+
+        <div class="image-display">
+            <img id="question-image" src="" alt="Animal to classify" style="display:none;">
+            <p id="status-message">Loading model...</p>
+        </div>
+
+        <div id="options-container" class="options-container">
+            </div>
+
+        <div id="feedback-container" class="feedback"></div>
+        <button id="next-button" onclick="nextQuestion()" style="display:none; margin-top: 20px;">Next Question</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    
+    <script type="text/javascript">
+        // --- 1. MODEL SETUP ---
+        const URL = "https://teachablemachine.withgoogle.com/models/AIJFupQNV/"; // Your Model URL
+        let model;
+
+        // --- 2. GAME VARIABLES ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        // IMPORTANT: Ensure these class names match the 5 classes in your Teachable Machine model EXACTLY
+        const ALL_CLASSES = ["Cat", "Dog", "Rabbit", "Bird", "Fish"]; 
+
+        // Quiz Questions: Paths are relative (no folder) for easy Netlify Drop
+        const quizData = [
+            // IMPORTANT: Replace these with the actual file names you are using
+            { file: "cat_pic_1.jpg", hint: "A common house pet known for purring." },
+            { file: "dog_pic_2.png", hint: "Often called 'man's best friend'." },
+            { file: "rabbit_pic_3.gif", hint: "Has long ears and hops." },
+            { file: "bird_pic_4.jpg", hint: "Can fly and build nests." },
+            { file: "fish_pic_5.jpg", hint: "Swims in water and has gills." },
+        ];
+        
+        quizData.sort(() => Math.random() - 0.5); // Shuffle questions
+
+        // --- 3. CORE FUNCTIONS ---
+
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            document.getElementById('status-message').innerHTML = "Loading model...";
+            
+            try {
+                model = await tmImage.load(modelURL, metadataURL);
+                document.getElementById('status-message').innerHTML = "Model loaded. Starting quiz...";
+                startQuiz();
+            } catch (error) {
+                document.getElementById('status-message').innerHTML = "Error loading model. Check your Teachable Machine link or internet connection.";
+                console.error("Model Loading Error:", error);
+            }
+        }
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElem
+          
+           </style>
+</head>
+<body>
