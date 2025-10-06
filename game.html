@@ -13,7 +13,9 @@
         .option-button:hover:not(:disabled) { background-color: #007bff; color: white; }
         .option-button:disabled { cursor: not-allowed; opacity: 0.6; }
         .feedback { margin-top: 15px; font-weight: bold; }
-  
+    </style>
+</head>
+<body>
 
     <div class="quiz-container">
         <h1>Animal Classification Quiz</h1>
@@ -81,8 +83,112 @@
         function startQuiz() {
             currentQuestionIndex = 0;
             score = 0;
-            document.getElem
-          
-           </style>
-</head>
-<body>
+            document.getElementById('score-display').innerHTML = `Score: ${score}`;
+            document.getElementById('status-message').style.display = 'none';
+            document.getElementById('question-image').style.display = 'block';
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex >= quizData.length) {
+                endGame();
+                return;
+            }
+            
+            isAnswered = false;
+            document.getElementById('feedback-container').innerHTML = '';
+            document.getElementById('next-button').style.display = 'none';
+            
+            const currentQuestion = quizData[currentQuestionIndex];
+            
+            document.getElementById('question-image').src = currentQuestion.file;
+            document.getElementById('hint-display').innerHTML = `Hint: ${currentQuestion.hint}`;
+            
+            // Generate the correct class based on the file name for option generation
+            let correctClass = ALL_CLASSES.find(cls => currentQuestion.file.toLowerCase().includes(cls.toLowerCase()));
+            if (!correctClass) { correctClass = ALL_CLASSES[0]; } // Fallback
+
+            let options = [correctClass];
+            let wrongClasses = ALL_CLASSES.filter(cls => cls !== correctClass);
+            
+            // Randomly pick 3 wrong answers (distractors)
+            let distractors = [];
+            while (distractors.length < 3 && wrongClasses.length > 0) {
+                const randomIndex = Math.floor(Math.random() * wrongClasses.length);
+                distractors.push(wrongClasses.splice(randomIndex, 1)[0]);
+            }
+            options = options.concat(distractors);
+            options.sort(() => Math.random() - 0.5);
+            
+            // Display the buttons
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.innerHTML = option;
+                button.onclick = () => checkAnswer(button, option);
+                optionsContainer.appendChild(button);
+            });
+            
+            currentQuestionIndex++;
+        }
+
+        async function checkAnswer(clickedButton, selectedClass) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            document.querySelectorAll('.option-button').forEach(btn => btn.disabled = true);
+
+            const img = document.getElementById('question-image');
+            
+            // Run the model prediction on the currently displayed image
+            const prediction = await model.predict(img);
+            
+            const correctPrediction = prediction.reduce((prev, current) => 
+                (prev.probability > current.probability) ? prev : current
+            );
+            const modelAnswer = correctPrediction.className;
+            
+            const feedbackContainer = document.getElementById('feedback-container');
+
+            if (selectedClass === modelAnswer) {
+                score += 1;
+                feedbackContainer.innerHTML = `🎉 Correct! The model predicted: **${modelAnswer}** (+1 Point)`;
+                clickedButton.style.backgroundColor = '#28a745'; // Green
+                clickedButton.style.color = 'white';
+            } else {
+                feedbackContainer.innerHTML = `❌ Incorrect. The model predicted: **${modelAnswer}** (0 Points)`;
+                clickedButton.style.backgroundColor = '#dc3545'; // Red
+                clickedButton.style.color = 'white';
+                
+                // Highlight the correct answer (as predicted by the model)
+                document.querySelectorAll('.option-button').forEach(btn => {
+                    if (btn.innerHTML === modelAnswer) {
+                        btn.style.backgroundColor = '#28a745';
+                        btn.style.color = 'white';
+                    }
+                });
+            }
+
+            document.getElementById('score-display').innerHTML = `Score: ${score}`;
+            document.getElementById('next-button').style.display = 'block';
+        }
+
+        function endGame() {
+            document.getElementById('question-image').style.display = 'none';
+            document.getElementById('hint-display').innerHTML = '';
+            document.getElementById('options-container').innerHTML = '';
+            document.getElementById('next-button').style.display = 'none';
+            document.getElementById('feedback-container').innerHTML = `
+                <h2>Game Over!</h2>
+                <p>Your final score is: **${score}** out of ${quizData.length}</p>
+                <button class='option-button' onclick="startQuiz()">Play Again</button>
+            `;
+        }
+        
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
